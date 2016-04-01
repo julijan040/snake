@@ -33,6 +33,7 @@ public class mapMaker : MonoBehaviour {
             {
                 GameObject copyTile = (GameObject)Instantiate(tile, new Vector2(startPositionX, startPositionY), Quaternion.identity);
                 copyTile.transform.SetParent(canvasTransform, false);
+                copyTile.transform.SetAsFirstSibling();
                 startPositionX+=50;
             }
             startPositionX = originalStartPositionX;
