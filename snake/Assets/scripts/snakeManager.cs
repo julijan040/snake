@@ -4,17 +4,21 @@ using System.Collections.Generic;
 
 public class snakeManager : MonoBehaviour {
 
-    int lookingPosition;
-    public List<GameObject> snakeParts = new List<GameObject>();
-    RectTransform headTransform;
-    RectTransform lastTailTransform;
+    int lookingPosition; // position that tells us in witch direction will snake move
+    int lookedPosition; // position that tells us in witch direction did snake move last turn
+
+    public List<GameObject> snakeParts = new List<GameObject>(); // list of gameobjects of snake
+
+    RectTransform headTransform; // head of snake
+    RectTransform lastTailTransform; // last tail of snake
 
     void Start ()
     {
         headTransform = snakeParts[0].GetComponent<RectTransform>();
         lastTailTransform = snakeParts[2].GetComponent<RectTransform>();
 
-        lookingPosition = Random.Range(0, 3);
+        lookingPosition = Random.Range(0, 3); // random looking position that cannot be right (becouse we start faced left)
+        lookedPosition = lookingPosition; // looked position is the same as looking position at start
 
         StartCoroutine(moveSnake());
     }
@@ -26,19 +30,19 @@ public class snakeManager : MonoBehaviour {
 
     void detectKeys()
     {
-        if (Input.GetKeyDown(KeyCode.DownArrow) && lookingPosition != 1)
+        if (Input.GetKeyDown(KeyCode.DownArrow) && lookedPosition != 1)
         {
             lookingPosition = 0;
         }
-        else if (Input.GetKeyDown(KeyCode.UpArrow) && lookingPosition != 0)
+        else if (Input.GetKeyDown(KeyCode.UpArrow) && lookedPosition != 0)
         {
             lookingPosition = 1;
         }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow) && lookingPosition != 3)
+        else if (Input.GetKeyDown(KeyCode.LeftArrow) && lookedPosition != 3)
         {
             lookingPosition = 2;
         }
-        else if (Input.GetKeyDown(KeyCode.RightArrow) && lookingPosition != 2)
+        else if (Input.GetKeyDown(KeyCode.RightArrow) && lookedPosition != 2)
         {
             lookingPosition = 3;
         }
@@ -46,9 +50,10 @@ public class snakeManager : MonoBehaviour {
 
     IEnumerator moveSnake()
     {
-        yield return new WaitForSeconds(1F);
-        moveBody();
-        StartCoroutine(moveSnake());
+        yield return new WaitForSeconds(0.6F); // wait for 0.6 sec
+        moveBody(); // move snake
+        lookedPosition = lookingPosition; // looked position becomes looking position
+        StartCoroutine(moveSnake()); // we start all over again
     }
 
     void moveBody()
