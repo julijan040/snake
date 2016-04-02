@@ -3,9 +3,12 @@ using System.Collections;
 
 public class obstacleScript : MonoBehaviour {
 
+    public snakeManager snakeManagerScrpt;
+
     void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("Something has entered this zone.");
+        
+        snakeManagerScrpt.makeEffectOfEndGame();
     }
    
 

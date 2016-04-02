@@ -17,11 +17,26 @@ public class snakeManager : MonoBehaviour {
 
     Vector2 positionOfLastTail; // position of last free position
 
-    float speed;
+    float speed; // speed of snake
+
+    public bool endGame; // if end game
+
+    public endGameManager endGameManager;
+
+    public int score;
+
+    AudioSource audioSource; // sound for eating
+    public AudioClip deathSound;
 
     void Start ()
     {
-        speed = 0.2f;
+        audioSource = GetComponent<AudioSource>(); 
+
+        score = 0;
+
+        endGame = false;
+
+        speed = 0.5f;
 
         headTransform = snakeParts[0].GetComponent<RectTransform>();
         lastTailTransform = snakeParts[2].GetComponent<RectTransform>();
@@ -63,9 +78,12 @@ public class snakeManager : MonoBehaviour {
     IEnumerator moveSnake()
     {
         yield return new WaitForSeconds(speed); // wait for speed;
-        moveBody(); // move snake
-        lookedPosition = lookingPosition; // looked position becomes looking position
-        StartCoroutine(moveSnake()); // we start all over again
+        if(!endGame)
+        {
+            moveBody(); // move snake
+            lookedPosition = lookingPosition; // looked position becomes looking position
+            StartCoroutine(moveSnake()); // we start all over again
+        }        
     }
 
     void moveBody()
@@ -110,12 +128,35 @@ public class snakeManager : MonoBehaviour {
 
     public void addSnakeTail()
     {
+        audioSource.Play();
+        score++;
+        poolOfSnakeParts[0].SetActive(true);
         poolOfSnakeParts[0].GetComponent<RectTransform>().localPosition = new Vector2(positionOfLastTail.x, positionOfLastTail.y);
         lastTailTransform = poolOfSnakeParts[0].GetComponent<RectTransform>();
         snakeParts.Add(poolOfSnakeParts[0]);
         poolOfSnakeParts.RemoveAt(0);
     }
 
-    
+    public void makeEffectOfEndGame()
+    {
+        if(!endGame)
+        {
+            endGame = true;
+            audioSource.clip = deathSound;
+            audioSource.Play();
+            endGameManager.endGame();
+
+            foreach (GameObject tail in snakeParts)
+            {
+                tail.GetComponent<Rigidbody2D>().gravityScale = 30f;
+                tail.GetComponent<Rigidbody2D>().AddForce(new Vector2(Random.Range(-150f, 150f), 0f), ForceMode2D.Impulse);
+                
+            }
+        }
+        
+    }
+
+
+
 
 }
