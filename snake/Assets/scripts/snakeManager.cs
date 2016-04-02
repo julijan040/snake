@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class snakeManager : MonoBehaviour {
 
@@ -12,8 +13,16 @@ public class snakeManager : MonoBehaviour {
     RectTransform headTransform; // head of snake
     RectTransform lastTailTransform; // last tail of snake
 
+    public List<GameObject> poolOfSnakeParts = new List<GameObject>(); // pool of snake parts
+
+    Vector2 positionOfLastTail; // position of last free position
+
+    float speed;
+
     void Start ()
     {
+        speed = 0.2f;
+
         headTransform = snakeParts[0].GetComponent<RectTransform>();
         lastTailTransform = snakeParts[2].GetComponent<RectTransform>();
 
@@ -26,6 +35,9 @@ public class snakeManager : MonoBehaviour {
 	void Update ()
     {
         detectKeys();
+
+        
+
     }
 
     void detectKeys()
@@ -50,7 +62,7 @@ public class snakeManager : MonoBehaviour {
 
     IEnumerator moveSnake()
     {
-        yield return new WaitForSeconds(0.6F); // wait for 0.6 sec
+        yield return new WaitForSeconds(speed); // wait for speed;
         moveBody(); // move snake
         lookedPosition = lookingPosition; // looked position becomes looking position
         StartCoroutine(moveSnake()); // we start all over again
@@ -67,6 +79,7 @@ public class snakeManager : MonoBehaviour {
 
     void moveTail()
     {
+        positionOfLastTail = lastTailTransform.localPosition;
         lastTailTransform.localPosition = headTransform.localPosition; // change position of last tail with head of snake
         GameObject temp = lastTailTransform.gameObject;
         snakeParts.RemoveAt(snakeParts.Count - 1); // remove last tail from list
@@ -94,5 +107,15 @@ public class snakeManager : MonoBehaviour {
             headTransform.localPosition = new Vector2(headTransform.localPosition.x + 50f, headTransform.localPosition.y);
         }
     }
+
+    public void addSnakeTail()
+    {
+        poolOfSnakeParts[0].GetComponent<RectTransform>().localPosition = new Vector2(positionOfLastTail.x, positionOfLastTail.y);
+        lastTailTransform = poolOfSnakeParts[0].GetComponent<RectTransform>();
+        snakeParts.Add(poolOfSnakeParts[0]);
+        poolOfSnakeParts.RemoveAt(0);
+    }
+
+    
 
 }
