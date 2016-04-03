@@ -27,6 +27,8 @@ public class foodScript : MonoBehaviour {
 
             } while (hit != null);
 
+            GetComponent<Animator>().Play("foodSpawn");
+
         }
         
     }

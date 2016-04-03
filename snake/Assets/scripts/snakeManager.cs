@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class snakeManager : MonoBehaviour {
 
@@ -25,13 +25,33 @@ public class snakeManager : MonoBehaviour {
 
     public int score;
 
-    AudioSource audioSource;
+    public AudioSource audioSource;
     public AudioSource audioLevelUp;
     public AudioClip deathSound;
     public AudioClip eatingSound;
 
+    public Sprite deadPlayer; // sprite for dead player
+    public Sprite happyPlayer; // sprite for dead player
+    public Sprite normalPlayer;
+    public Image spriteHead;
+
+    public GameObject numberOne;
+    public GameObject numberTwo;
+    public GameObject numberThree;
+
+    public GameObject food;
+
+    public GameObject speedUpText;
+    
+
+    public GameObject headObject;
+
+    public int swipe;
+
     void Start ()
     {
+        swipe = -1;
+
         audioSource = GetComponent<AudioSource>(); 
 
         score = 0;
@@ -44,13 +64,64 @@ public class snakeManager : MonoBehaviour {
         lastTailTransform = snakeParts[2].GetComponent<RectTransform>();
 
         lookingPosition = Random.Range(0, 3); // random looking position that cannot be right (becouse we start faced left)
-        lookedPosition = lookingPosition; // looked position is the same as looking position at start
+        lookedPosition = 2  ;
 
-        StartCoroutine(moveSnake());
-        StartCoroutine(speedUpSnake());
+        Vector2 lookingRotation;
+
+        if(lookingPosition==0)
+        {
+            lookingRotation = new Vector2(0f,-1f);
+        }
+        else if(lookingPosition == 1)
+        {
+            lookingRotation = new Vector2(0f, 1f);
+        }
+        else if(lookingPosition == 2)
+        {
+            lookingRotation = new Vector2(1f, 0f);
+        }
+        else
+        {
+            lookingRotation = new Vector2(-1f, 0f);
+        }
+
+        float angle = Mathf.Atan2(lookingRotation.x,lookingRotation.y) * Mathf.Rad2Deg;
+        headObject.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+        spriteHead = headTransform.gameObject.GetComponent<Image>();
+
+        StartCoroutine(threeSecondSpawn()); // delay for start        
+
     }
-	
-	void Update ()
+
+    IEnumerator threeSecondSpawn()
+    {
+        StartCoroutine(showStartNumbers()); // shows start numbers
+
+        yield return new WaitForSeconds(3f);
+
+        StartCoroutine(moveSnake()); // moves snake
+        StartCoroutine(speedUpSnake()); // speeds up snake
+    }
+
+    IEnumerator showStartNumbers()
+    {
+        audioLevelUp.Play();
+        numberThree.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        audioLevelUp.Play();
+        numberThree.SetActive(false);
+        numberTwo.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        audioLevelUp.Play();
+        numberTwo.SetActive(false);
+        numberOne.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        numberOne.SetActive(false);
+    }
+
+
+    void Update ()
     {
         detectKeys();
 
@@ -60,22 +131,45 @@ public class snakeManager : MonoBehaviour {
 
     void detectKeys()
     {
-        if (Input.GetKeyDown(KeyCode.DownArrow) && lookedPosition != 1)
+        if ((Input.GetKeyDown(KeyCode.DownArrow) || swipe == 0) && lookedPosition != 1)
         {
             lookingPosition = 0;
+            float angle = Mathf.Atan2(0f, -1f) * Mathf.Rad2Deg;
+            headObject.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
-        else if (Input.GetKeyDown(KeyCode.UpArrow) && lookedPosition != 0)
+        else if ((Input.GetKeyDown(KeyCode.UpArrow) || swipe == 1) && lookedPosition != 0)
         {
             lookingPosition = 1;
+            float angle = Mathf.Atan2(0f, 1f) * Mathf.Rad2Deg;
+            headObject.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow) && lookedPosition != 3)
+        else if ((Input.GetKeyDown(KeyCode.LeftArrow) || swipe == 2) && lookedPosition != 3)
         {
             lookingPosition = 2;
+            float angle = Mathf.Atan2(1f, 0f) * Mathf.Rad2Deg;
+            headObject.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
-        else if (Input.GetKeyDown(KeyCode.RightArrow) && lookedPosition != 2)
+        else if ((Input.GetKeyDown(KeyCode.RightArrow) || swipe == 3) && lookedPosition != 2)
         {
             lookingPosition = 3;
+            float angle = Mathf.Atan2(-1f, 0f) * Mathf.Rad2Deg;
+            headObject.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
+    }
+
+    public void removeTail()
+    {
+        spriteHead.sprite = happyPlayer;
+        StopCoroutine(changeHeadToNormalSprite());
+        StartCoroutine(changeHeadToNormalSprite());
+
+        audioSource.clip = eatingSound;
+        audioSource.Play();
+
+        lastTailTransform.localPosition = new Vector2(-999f, -999f);
+        lastTailTransform.gameObject.SetActive(false);
+        lastTailTransform = snakeParts[snakeParts.Count-2].GetComponent<RectTransform>();        
+        snakeParts.RemoveAt(snakeParts.Count - 1);
     }
 
     IEnumerator speedUpSnake() // speed up snake every n seconds
@@ -84,9 +178,17 @@ public class snakeManager : MonoBehaviour {
         if(!endGame)
         {
             audioLevelUp.Play();
+            speedUpText.SetActive(true);
+            StartCoroutine(disableAfterSecond());
             if (!(speed < 0.08f)) speed -= 0.04f;
             StartCoroutine(speedUpSnake());
         }        
+    }
+
+    IEnumerator disableAfterSecond()
+    {
+        yield return new WaitForSeconds(1f);
+        speedUpText.SetActive(false);
     }
 
     IEnumerator moveSnake()
@@ -104,7 +206,9 @@ public class snakeManager : MonoBehaviour {
 
     void moveBody()
     {
+
         moveTail();
+
         moveHead();
              
     }
@@ -144,6 +248,9 @@ public class snakeManager : MonoBehaviour {
 
     public void addSnakeTail()
     {
+        spriteHead.sprite = happyPlayer;
+        StopCoroutine(changeHeadToNormalSprite());
+        StartCoroutine(changeHeadToNormalSprite());
         audioSource.clip = eatingSound;
         audioSource.Play();
         score++;
@@ -154,6 +261,12 @@ public class snakeManager : MonoBehaviour {
         poolOfSnakeParts.RemoveAt(0);
     }
 
+    public IEnumerator changeHeadToNormalSprite()
+    {
+        yield return new WaitForSeconds(1f);
+        if (!endGame) spriteHead.sprite = normalPlayer;
+    }
+
     public void makeEffectOfEndGame()
     {
         if(!endGame)
@@ -162,6 +275,7 @@ public class snakeManager : MonoBehaviour {
             audioSource.clip = deathSound;
             audioSource.Play();
             endGameManager.endGame();
+            spriteHead.sprite = deadPlayer;
 
             foreach (GameObject tail in snakeParts)
             {
@@ -169,8 +283,12 @@ public class snakeManager : MonoBehaviour {
                 tail.GetComponent<Rigidbody2D>().AddForce(new Vector2(Random.Range(-150f, 150f), 200f), ForceMode2D.Impulse);
                 
             }
+
+            food.GetComponent<Rigidbody2D>().gravityScale = 30f;
+            food.GetComponent<Rigidbody2D>().AddForce(new Vector2(Random.Range(-150f, 150f), 200f), ForceMode2D.Impulse);
+
         }
-        
+
     }
 
 
