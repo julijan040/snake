@@ -1,43 +1,42 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class mapMaker : MonoBehaviour {
+public class mapMaker : MonoBehaviour
+{
+    Collider2D hit;
+    public GameObject[] walls;
+    public GameObject food;
 
-    public GameObject tile;
-
-    public int width; // width of map
-    public int height; // height of map
-    public int startPositionX; // start X position of tiles
-    public int startPositionY; // start Y position of tiles    
-    int originalStartPositionX;
-
-    public Transform canvasTransform;
-
-    void Start ()
+    void Start()
     {
-        makeMap();	    
-	}
-	
-	void Update ()
-    {
-	
-	}
-
-    public void makeMap()
-    {
-        originalStartPositionX = startPositionX;
-
-        for (int i = 0; i < height; i++)
+        foreach (GameObject wall in walls)
         {
-            for (int y = 0; y < width; y++)
+            do
             {
-                GameObject copyTile = (GameObject)Instantiate(tile, new Vector2(startPositionX, startPositionY), Quaternion.identity);
-                copyTile.transform.SetParent(canvasTransform, false);
-                copyTile.transform.SetAsFirstSibling();
-                startPositionX+=50;
-            }
-            startPositionX = originalStartPositionX;
-            startPositionY-=50;
+                float width = 143 + Random.Range(0, 19) * 50;
+                float height = 595 - Random.Range(1, 9) * 50;
+
+                wall.GetComponent<RectTransform>().localPosition = new Vector2(width, height);
+
+                hit = Physics2D.OverlapCircle(wall.transform.position, 1f);
+
+            } while (hit != null);
+
+            wall.layer = 5;
         }
+
+
+        do
+        {
+            float width = 143 + Random.Range(0, 19) * 50;
+            float height = 595 - Random.Range(1, 9) * 50;
+
+            food.GetComponent<RectTransform>().localPosition = new Vector2(width, height);
+
+            hit = Physics2D.OverlapCircle(food.transform.position, 1f);
+
+        } while (hit != null);
+
     }
+    
 }

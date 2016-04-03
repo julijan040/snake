@@ -13,8 +13,8 @@ public class endGameManager : MonoBehaviour {
     public void endGame()
     {
         endGamePanel.SetActive(true);
-        timeSurvived.text = "TIME SURVIVED: " + System.Math.Round(Time.timeSinceLevelLoad, 2);
-        ate.text = "YOU ATE: "  + snakeManager.score;
+        timeSurvived.text = "YOU SURVIVED: " + System.Math.Round(Time.timeSinceLevelLoad, 0) + " SEC!";
+        ate.text = "YOU ATE: "  + snakeManager.score + " COOKIES!";
     }
 
     public void restart()

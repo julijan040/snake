@@ -17,7 +17,7 @@ public class snakeManager : MonoBehaviour {
 
     Vector2 positionOfLastTail; // position of last free position
 
-    float speed; // speed of snake
+    public float speed; // speed of snake
 
     public bool endGame; // if end game
 
@@ -25,8 +25,10 @@ public class snakeManager : MonoBehaviour {
 
     public int score;
 
-    AudioSource audioSource; // sound for eating
+    AudioSource audioSource;
+    public AudioSource audioLevelUp;
     public AudioClip deathSound;
+    public AudioClip eatingSound;
 
     void Start ()
     {
@@ -36,7 +38,7 @@ public class snakeManager : MonoBehaviour {
 
         endGame = false;
 
-        speed = 0.5f;
+        speed = 0.4f;
 
         headTransform = snakeParts[0].GetComponent<RectTransform>();
         lastTailTransform = snakeParts[2].GetComponent<RectTransform>();
@@ -45,6 +47,7 @@ public class snakeManager : MonoBehaviour {
         lookedPosition = lookingPosition; // looked position is the same as looking position at start
 
         StartCoroutine(moveSnake());
+        StartCoroutine(speedUpSnake());
     }
 	
 	void Update ()
@@ -75,10 +78,23 @@ public class snakeManager : MonoBehaviour {
         }
     }
 
+    IEnumerator speedUpSnake() // speed up snake every n seconds
+    {
+        yield return new WaitForSeconds(20f);
+        if(!endGame)
+        {
+            audioLevelUp.Play();
+            if (!(speed < 0.08f)) speed -= 0.04f;
+            StartCoroutine(speedUpSnake());
+        }        
+    }
+
     IEnumerator moveSnake()
     {
         yield return new WaitForSeconds(speed); // wait for speed;
-        if(!endGame)
+        
+
+        if (!endGame)
         {
             moveBody(); // move snake
             lookedPosition = lookingPosition; // looked position becomes looking position
@@ -128,6 +144,7 @@ public class snakeManager : MonoBehaviour {
 
     public void addSnakeTail()
     {
+        audioSource.clip = eatingSound;
         audioSource.Play();
         score++;
         poolOfSnakeParts[0].SetActive(true);
@@ -149,7 +166,7 @@ public class snakeManager : MonoBehaviour {
             foreach (GameObject tail in snakeParts)
             {
                 tail.GetComponent<Rigidbody2D>().gravityScale = 30f;
-                tail.GetComponent<Rigidbody2D>().AddForce(new Vector2(Random.Range(-150f, 150f), 0f), ForceMode2D.Impulse);
+                tail.GetComponent<Rigidbody2D>().AddForce(new Vector2(Random.Range(-150f, 150f), 200f), ForceMode2D.Impulse);
                 
             }
         }
